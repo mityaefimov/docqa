@@ -1,47 +1,44 @@
 """create_test_docs — генератор тестовых документов для docqa."""
 
 import docx
-from docx.shared import Pt
 import os
 
 
+def set_good_metadata(doc, title: str, author: str) -> None:
+    """Устанавливает корректные метаданные."""
+    props = doc.core_properties
+    props.title = title
+    props.author = author
+    props.language = 'ru-RU'
+
+
 def create_document_with_issues(path: str) -> None:
-    """Создаёт документ с разными проблемами структуры."""
+    """Создаёт документ с проблемами структуры И метаданных."""
     doc = docx.Document()
 
-    # обычный заголовок H1
     doc.add_heading('Глава 1', level=1)
-
-    # сразу заголовок H3 — пропуск уровня! (должно вызвать предупреждение)
     doc.add_heading('Подглава', level=3)
-
-    # немного обычного текста
     doc.add_paragraph('Это обычный текст между заголовками.')
 
-    # несколько пустых параграфов подряд (больше 3 — должно вызвать предупреждение)
     for _ in range(5):
         doc.add_paragraph('')
 
-    # короткая одинокая строка (меньше 3 символов — предупреждение)
     doc.add_paragraph('Х.')
-
-    # ещё один текст
     doc.add_paragraph('Продолжение главы после короткой строки.')
 
-    # нормальный переход заголовков (H1 -> H2, проблем нет)
     doc.add_heading('Глава 2', level=1)
     doc.add_heading('Подглава 2.1', level=2)
     doc.add_paragraph('Обычный текст во второй главе.')
 
+    # метаданные НЕ ставим — будут мусорные (это тоже баг для валидатора)
     doc.save(path)
     print(f"✅ Создан: {path}")
 
 
 def create_clean_document(path: str) -> None:
-    """Создаёт чистый документ без проблем (для сравнения)."""
+    """Создаёт чистый документ без проблем."""
     doc = docx.Document()
 
-    # правильная иерархия заголовков
     doc.add_heading('Введение', level=1)
     doc.add_paragraph('Это введение в документ.')
 
@@ -54,23 +51,28 @@ def create_clean_document(path: str) -> None:
     doc.add_heading('Раздел 2', level=2)
     doc.add_paragraph('Текст второго раздела, тоже нормальный.')
 
+    # хорошие метаданные — валидатор не должен ругаться
+    set_good_metadata(doc, 'Чистый тестовый документ', 'Dmitry Pugachev')
+
     doc.save(path)
     print(f"✅ Создан: {path}")
 
 
 def create_document_with_orphans(path: str) -> None:
-    """Создаёт документ с множеством коротких одиноких строк."""
+    """Создаёт документ с короткими одинокими строками."""
     doc = docx.Document()
 
     doc.add_heading('Глава с артефактами', level=1)
     doc.add_paragraph('Нормальный текст в начале.')
 
-    # несколько коротких строк подряд
     doc.add_paragraph('1.')
     doc.add_paragraph('а')
     doc.add_paragraph('-')
 
     doc.add_paragraph('После артефактов идёт нормальный текст достаточной длины.')
+
+    # ставим только автора, но НЕ название и НЕ язык (частично плохие метаданные)
+    doc.core_properties.author = 'Dmitry Pugachev'
 
     doc.save(path)
     print(f"✅ Создан: {path}")
@@ -78,7 +80,6 @@ def create_document_with_orphans(path: str) -> None:
 
 def main():
     """Создаёт все тестовые документы в папке проекта."""
-    # папка где лежит этот скрипт (корень проекта)
     project_dir = os.path.dirname(os.path.abspath(__file__))
 
     print("🔨 Создаю тестовые документы...")
@@ -90,7 +91,6 @@ def main():
 
     print()
     print("🎉 Готово! Три тестовых документа созданы.")
-    print("Теперь можешь запустить валидатор на них.")
 
 
 if __name__ == "__main__":

@@ -1,33 +1,37 @@
-"""Быстрый тест валидатора на трёх документах."""
+"""Быстрый тест всех валидаторов на трёх документах."""
 
 import sys
 import os
 
-# добавляем папку проекта в путь чтобы импорты работали
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from docqa.validators.structure import StructureValidator
+from docqa.validators.metadata import MetadataValidator
+
+VALIDATORS = [StructureValidator, MetadataValidator]
 
 
 def test_file(file_path: str) -> None:
-    """Запускает валидатор на одном файле."""
+    """Запускает все валидаторы на одном файле."""
     if not os.path.exists(file_path):
         print(f"❌ Файл не найден: {file_path}")
         return
 
-    validator = StructureValidator(file_path)
-    issues = validator.validate()
-
     print(f"\n📄 {os.path.basename(file_path)}")
-    print(f"   Найдено проблем: {len(issues)}")
-    for issue in issues:
-        print(f"   {issue}")
+
+    for validator_class in VALIDATORS:
+        validator = validator_class(file_path)
+        issues = validator.validate()
+
+        print(f"   {validator_class.__name__}: {len(issues)} проблем")
+        for issue in issues:
+            print(f"      {issue}")
 
 
 def main():
     project_dir = os.path.dirname(os.path.abspath(__file__))
 
-    print("🔍 Тестирую валидатор на трёх документах...")
+    print("🔍 Тестирую валидаторы на трёх документах...")
 
     test_file(os.path.join(project_dir, 'test_sample.docx'))
     test_file(os.path.join(project_dir, 'test_clean.docx'))
