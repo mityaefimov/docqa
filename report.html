@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>DocQA Report: test_sample.docx</title>
+<style>
+body { font-family: sans-serif; max-width: 800px; margin: 40px auto; }
+.critical { color: red; font-weight: bold; }
+.warning { color: orange; }
+.info { color: blue; }
+</style>
+</head><body>
+<h1>DocQA Report: test_sample.docx</h1>
+<p>Total issues: 8</p>
+<p>Critical: 0, Warning: 6, Info: 2</p>
+<h2>Details</h2>
+<ul>
+<li class="warning">[WARNING] Paragraph 2: Пропущен уровень: после H1 сразу H3</li>
+<li class="info">[INFO] Paragraphs 4-8: 5 пустых параграфов подряд</li>
+<li class="warning">[WARNING] Paragraph 9: Подозрительно короткий текст: "Х."</li>
+<li class="warning">[WARNING] Metadata: author: Автор не указан или содержит мусорное значение</li>
+<li class="warning">[WARNING] Metadata: title: Название не указано или содержит мусорное значение</li>
+<li class="info">[INFO] Metadata: language: Язык документа не указан</li>
+<li class="warning">[WARNING] Paragraph 14: Ссылка без корректной схемы (http/https/mailto): github.com/mityaefimov/docqa</li>
+<li class="warning">[WARNING] Paragraph 14: Внутренняя ссылка на несуществующую закладку: missing_bookmark</li>
+</ul>
+</body></html>

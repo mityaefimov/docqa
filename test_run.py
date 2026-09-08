@@ -7,9 +7,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from docqa.validators.structure import StructureValidator
 from docqa.validators.metadata import MetadataValidator
+from docqa.validators.links import LinksValidator
 
-VALIDATORS = [StructureValidator, MetadataValidator]
-
+VALIDATORS = [StructureValidator, MetadataValidator, LinksValidator]
 
 def test_file(file_path: str) -> None:
     """Запускает все валидаторы на одном файле."""

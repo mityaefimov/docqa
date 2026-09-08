@@ -2,6 +2,39 @@
 
 import docx
 import os
+from docx.oxml.shared import OxmlElement
+from docx.oxml.ns import qn
+from docx.opc.constants import RELATIONSHIP_TYPE as RT
+
+
+def add_hyperlink(paragraph, url: str, text: str) -> None:
+    """Добавляет внешнюю гиперссылку в параграф (через низкоуровневый XML)."""
+    r_id = paragraph.part.relate_to(url, RT.HYPERLINK, is_external=True)
+
+    hyperlink = OxmlElement('w:hyperlink')
+    hyperlink.set(qn('r:id'), r_id)
+
+    run = OxmlElement('w:r')
+    t = OxmlElement('w:t')
+    t.text = text
+    run.append(t)
+    hyperlink.append(run)
+
+    paragraph._p.append(hyperlink)
+
+
+def add_anchor_link(paragraph, anchor: str, text: str) -> None:
+    """Добавляет внутреннюю ссылку на закладку (якорь)."""
+    hyperlink = OxmlElement('w:hyperlink')
+    hyperlink.set(qn('w:anchor'), anchor)
+
+    run = OxmlElement('w:r')
+    t = OxmlElement('w:t')
+    t.text = text
+    run.append(t)
+    hyperlink.append(run)
+
+    paragraph._p.append(hyperlink)
 
 
 def set_good_metadata(doc, title: str, author: str) -> None:
@@ -13,7 +46,7 @@ def set_good_metadata(doc, title: str, author: str) -> None:
 
 
 def create_document_with_issues(path: str) -> None:
-    """Создаёт документ с проблемами структуры И метаданных."""
+    """Создаёт документ с проблемами структуры, метаданных и ссылок."""
     doc = docx.Document()
 
     doc.add_heading('Глава 1', level=1)
@@ -30,7 +63,11 @@ def create_document_with_issues(path: str) -> None:
     doc.add_heading('Подглава 2.1', level=2)
     doc.add_paragraph('Обычный текст во второй главе.')
 
-    # метаданные НЕ ставим — будут мусорные (это тоже баг для валидатора)
+    # битые ссылки: одна без схемы, одна на несуществующую закладку
+    p_links = doc.add_paragraph('Ссылки: ')
+    add_hyperlink(p_links, 'github.com/mityaefimov/docqa', 'ссылка без схемы')
+    add_anchor_link(p_links, 'missing_bookmark', 'битый якорь')
+
     doc.save(path)
     print(f"✅ Создан: {path}")
 
@@ -51,7 +88,10 @@ def create_clean_document(path: str) -> None:
     doc.add_heading('Раздел 2', level=2)
     doc.add_paragraph('Текст второго раздела, тоже нормальный.')
 
-    # хорошие метаданные — валидатор не должен ругаться
+    # хорошая ссылка с корректной схемой
+    p_link = doc.add_paragraph('Наш проект: ')
+    add_hyperlink(p_link, 'https://github.com/mityaefimov/docqa', 'DocQA на GitHub')
+
     set_good_metadata(doc, 'Чистый тестовый документ', 'Dmitry Pugachev')
 
     doc.save(path)
@@ -71,7 +111,6 @@ def create_document_with_orphans(path: str) -> None:
 
     doc.add_paragraph('После артефактов идёт нормальный текст достаточной длины.')
 
-    # ставим только автора, но НЕ название и НЕ язык (частично плохие метаданные)
     doc.core_properties.author = 'Dmitry Pugachev'
 
     doc.save(path)
